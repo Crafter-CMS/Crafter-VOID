@@ -68,5 +68,6 @@ export interface User {
     };
     bannedAt?: string;
     twoFactorEnabled?: boolean;
+    nextVoteAt?: string | null;
 }
 
