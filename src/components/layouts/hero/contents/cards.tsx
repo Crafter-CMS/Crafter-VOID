@@ -4,16 +4,21 @@ import Link from "next/link";
 import { renderSocialIcon } from "@/lib/helpers/renderIcon";
 import { FaDiscord } from "react-icons/fa";
 import McWidget from "@/components/ui/mc-widget";
+import { useMinecraftStatus } from "@/lib/hooks/useMinecraftStatus";
 
 export default function HeroCards({
   socialMedia,
-  minecraftStatus,
+  minecraftServer,
   discordStatus,
 }: {
   socialMedia: Website["social_media"];
-  minecraftStatus: any;
+  minecraftServer: { ip: string; port: number };
   discordStatus: any;
 }) {
+  const { status, loading, error } = useMinecraftStatus({
+    hostname: minecraftServer.ip,
+    port: minecraftServer.port,
+  });
   const socialMediaArray = Object.entries(socialMedia).map(([key, value]) => {
     return {
       key,
@@ -25,7 +30,7 @@ export default function HeroCards({
     <div className="flex flex-col md:grid md:grid-cols-3 gap-4 sm:gap-5 md:gap-6 justify-center items-center max-w-4xl w-full">
       {/* Server Information Card - First on Mobile */}
       <Link href="/home#server" className="w-full max-w-sm">
-        <McWidget status={minecraftStatus} />
+        <McWidget status={status} loading={loading} error={error} />
       </Link>
 
       {/* Discord Server Card - Second on Mobile */}

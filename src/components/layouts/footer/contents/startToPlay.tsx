@@ -4,16 +4,31 @@
 
 import { Button } from "@/components/ui/button";
 import { ArrowUpRight, Check, Play, Server, Users, Wifi } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useMinecraftStatus } from "@/lib/hooks/useMinecraftStatus";
 
 export default function StartToPlay({
   serverAddress,
   status,
 }: {
   serverAddress: string;
-  status: any;
+  status?: any;
 }) {
   const [copied, setCopied] = useState(false);
+  
+  // Extract server info from serverAddress (assuming format like "play.example.com" or "play.example.com:25565")
+  const [hostname, port] = serverAddress.includes(':') 
+    ? serverAddress.split(':') 
+    : [serverAddress, 25565];
+  
+  // Use client-side status fetching if no status provided
+  const { status: clientStatus, loading } = useMinecraftStatus({
+    hostname,
+    port: parseInt(port.toString()),
+  });
+  
+  // Use provided status or client-side status
+  const currentStatus = status || clientStatus;
 
   const handleCopy = async () => {
     try {
@@ -41,20 +56,34 @@ export default function StartToPlay({
         {/* Server Status Bar */}
         <div className="bg-muted/20 border border-border/50 rounded-xl p-4 mb-8">
           <div className="flex items-center justify-center">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-foreground">Çevrimiçi</span>
-            </div>
-            <div className="w-px h-6 bg-border/50 mx-3"></div>
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">{status.online} oyuncu aktif</span>
-            </div>
-            <div className="w-px h-6 bg-border/50 mx-3"></div>
-            <div className="flex items-center gap-2">
-              <Wifi className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">{status.roundTripLatency}ms ping</span>
-            </div>
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-foreground">Yükleniyor...</span>
+              </div>
+            ) : currentStatus ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium text-foreground">Çevrimiçi</span>
+                </div>
+                <div className="w-px h-6 bg-border/50 mx-3"></div>
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">{currentStatus.online} oyuncu aktif</span>
+                </div>
+                <div className="w-px h-6 bg-border/50 mx-3"></div>
+                <div className="flex items-center gap-2">
+                  <Wifi className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">{currentStatus.roundTripLatency}ms ping</span>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <span className="text-sm font-medium text-foreground">Sunucu durumu alınamadı</span>
+              </div>
+            )}
           </div>
         </div>
 

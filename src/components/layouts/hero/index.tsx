@@ -5,23 +5,22 @@ export default function Hero({
   bannerImage,
   logoImage,
   socialMedia,
-  minecraftStatus,
+  minecraftServer,
   discordStatus,
 }: {
   bannerImage: string;
   logoImage: string;
   socialMedia: Website["social_media"];
-  minecraftStatus: any;
+  minecraftServer: { ip: string; port: number };
   discordStatus: any;
 }) {
-  
   return (
     <div className="flex flex-col">
       <HeroImage
         bannerImage={bannerImage}
         logoImage={logoImage}
         socialMedia={socialMedia}
-        minecraftStatus={minecraftStatus}
+        minecraftServer={minecraftServer}
         discordStatus={discordStatus}
       />
     </div>

@@ -25,7 +25,7 @@ export default function Footer({
     discord: string;
   };
   quickLinks: Website["theme"]["navbar"];
-  status: any;
+  status?: any;
 }) {
   return (
     <footer className="flex-none container mx-auto">
