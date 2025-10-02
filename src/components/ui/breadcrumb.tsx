@@ -117,12 +117,12 @@ export function DefaultBreadcrumb({
             <BreadcrumbSeparator />
           </BreadcrumbItem>
           {items.map((item, index) => (
-            <>
+            <React.Fragment key={index}>
               {index === items.length - 1 ? (
-                <BreadcrumbPage className="text-primary" key={index}>{item.label}</BreadcrumbPage>
+                <BreadcrumbPage className="text-primary">{item.label}</BreadcrumbPage>
               ) : (
                 <>
-                <BreadcrumbItem key={index}>
+                <BreadcrumbItem>
                   <BreadcrumbLink asChild>
                     <Link href={item.href}>{item.label}</Link>
                     </BreadcrumbLink>
@@ -130,7 +130,7 @@ export function DefaultBreadcrumb({
                   <BreadcrumbSeparator />
                 </>
               )}
-            </>
+            </React.Fragment>
           ))}
         </BreadcrumbList>
       </Breadcrumb>
