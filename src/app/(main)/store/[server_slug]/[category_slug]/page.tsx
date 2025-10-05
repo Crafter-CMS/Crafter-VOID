@@ -1,20 +1,33 @@
 import ProductCard from "@/components/ui/store/product-card";
 import { serverCategoriesService } from "@/lib/api/services/categoriesService";
-import { productsService } from "@/lib/api/services/productsService";
-import { websiteService } from "@/lib/api/services/websiteService";
+import { serverProductsService } from "@/lib/api/services/productsService";
+import { serverWebsiteService } from "@/lib/api/services/websiteService";
 import { Metadata } from "next";
 import { DefaultBreadcrumb } from "@/components/ui/breadcrumb";
 import { serverServersService } from "@/lib/api/services/serversService";
 import Title from "@/components/ui/title";
-import { marketplaceService } from "@/lib/api/services/marketplaceService";
+import { serverMarketplaceService } from "@/lib/api/services/marketplaceService";
 import StaticAlert from "@/components/ui/alerts/static-alert";
+import { headers } from "next/headers";
+
+async function getWebsite() {
+  const headersList = await headers();
+  const websiteId = headersList.get("x-website-id") as string;
+
+  const websiteService = serverWebsiteService(websiteId as string);
+  const website = await websiteService.getWebsite({ id: websiteId || "" });
+  
+  return website;
+}
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ server_slug: string; category_slug: string }>;
 }): Promise<Metadata> {
-  const category = await serverCategoriesService().getCategory(
+  const headersList = await headers();
+  const websiteId = headersList.get("x-website-id") as string;
+  const category = await serverCategoriesService(websiteId).getCategory(
     (
       await params
     ).category_slug
@@ -30,20 +43,18 @@ export default async function CategoryPage({
 }: {
   params: Promise<{ server_slug: string; category_slug: string }>;
 }) {
-  const website = await websiteService.getWebsite({
-    id: process.env.NEXT_PUBLIC_WEBSITE_ID,
-  });
+  const website = await getWebsite();
 
-  const category = await serverCategoriesService().getCategory(
-    (
-      await params
-    ).category_slug
+  const headersList = await headers();
+  const websiteId = headersList.get("x-website-id") as string;
+  const category = await serverCategoriesService(websiteId).getCategory(
+    (await params).category_slug
   );
-  const server = await serverServersService().getServer(category.server_id);
+  const server = await serverServersService(websiteId).getServer(category.server_id);
 
-  const products = await productsService.getProductsByCategory(category.id);
+  const products = await serverProductsService(websiteId).getProductsByCategory(category.id);
 
-  const marketplaceSettings = await marketplaceService.getMarketplaceSettings();
+  const marketplaceSettings = await serverMarketplaceService(websiteId).getMarketplaceSettings();
 
   return (
     <div>

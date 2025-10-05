@@ -31,6 +31,7 @@ import MyApplications from "./my-applications";
 import { AuthContext } from "@/lib/context/AuthContext";
 
 export default function StaffForms() {
+  const staffFormServiceInstance = staffFormService();
   const { isAuthenticated, isLoading } = useContext(AuthContext);
   const [forms, setForms] = useState<StaffForm[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +50,7 @@ export default function StaffForms() {
       try {
         setLoading(true);
         setError(null);
-        const data = await staffFormService.getForms();
+        const data = await staffFormServiceInstance.getForms();
         setForms(data);
       } catch (error) {
         console.error("Error fetching staff forms:", error);

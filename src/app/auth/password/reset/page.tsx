@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import ResetPasswordForm from "@/components/auth/resetPassForm";
 import { serverWebsiteService } from "@/lib/api/services/websiteService";
+import { headers } from "next/headers";
 
 export const metadata: Metadata = {
   title: "Şifremi Sıfırla",
@@ -8,9 +9,11 @@ export const metadata: Metadata = {
 };
 
 export default async function ResetPasswordPage() {
-  const websiteService = serverWebsiteService();
+  const headersList = await headers();
+  const websiteId = headersList.get("x-website-id") as string;
+  const websiteService = serverWebsiteService(websiteId);
   const website = await websiteService.getWebsite({
-    id: process.env.NEXT_PUBLIC_WEBSITE_ID || "",
+    id: websiteId || "",
   });
   
   return (

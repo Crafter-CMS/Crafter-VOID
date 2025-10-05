@@ -172,6 +172,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, initialState);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
+  // Create marketplaceService instance for client-side usage
+  const marketplaceServiceInstance = marketplaceService();
+
   // Load cart from localStorage on mount
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
@@ -191,7 +194,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     // Load bulk discount information
     const loadBulkDiscount = async () => {
       try {
-        const marketplaceSettings = await marketplaceService.getMarketplaceSettings();
+        const marketplaceSettings = await marketplaceServiceInstance.getMarketplaceSettings();
         if (marketplaceSettings.bulkDiscount) {
           dispatch({ type: 'SET_BULK_DISCOUNT', payload: marketplaceSettings.bulkDiscount });
         }
@@ -239,7 +242,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     dispatch({ type: 'SET_ERROR', payload: null });
 
     try {
-      const coupon = await marketplaceService.getCouponInfo(code);
+      const coupon = await marketplaceServiceInstance.getCouponInfo(code);
       dispatch({ type: 'SET_COUPON', payload: coupon });
       dispatch({ type: 'SET_COUPON_CODE', payload: code });
     } catch (error) {
@@ -327,7 +330,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       const productIds = state.items.map(item => item.id);
       const couponCode = state.coupon?.code;
       
-      const result = await marketplaceService.purchaseProduct(productIds, couponCode);
+      const result = await marketplaceServiceInstance.purchaseProduct(productIds, couponCode);
       console.log(result);
       if (result.success === 'true') {
         clearCart();

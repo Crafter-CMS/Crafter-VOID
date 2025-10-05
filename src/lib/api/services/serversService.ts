@@ -1,25 +1,30 @@
-import { BACKEND_URL_WITH_WEBSITE_ID } from '@/lib/constants/base';
-import { Server } from '@/lib/types/server';
-import { ApiClient } from '../useApi';
+import { Server } from "@/lib/types/server";
+import { useApi, useServerApi } from "../useApi";
 
 export class ServersService {
-  private api: ApiClient;
+  private api: ReturnType<typeof useApi>;
 
-  constructor(apiClient?: ApiClient) {
-    this.api =
-      apiClient ||
-      new ApiClient(
-        BACKEND_URL_WITH_WEBSITE_ID
-      );
+  constructor(websiteId?: string) {
+    if (websiteId) {
+      // Server-side usage with websiteId
+      this.api = useServerApi(websiteId); // v1 default
+    } else {
+      // Client-side usage
+      this.api = useApi(); // v1 default
+    }
   }
 
   // Tüm sunucuları getir
   async getServers(): Promise<Server[]> {
     try {
-      const response = await this.api.get<Server[]>('/config/servers', {}, true);
+      const response = await this.api.get<Server[]>(
+        `/config/servers`,
+        {},
+        true
+      );
       return response.data;
     } catch (error) {
-      console.error('Error getting servers:', error);
+      console.error("Error getting servers:", error);
       throw error;
     }
   }
@@ -27,24 +32,21 @@ export class ServersService {
   // Tek bir sunucuyu getir
   async getServer(serverId: string): Promise<Server> {
     try {
-      const response = await this.api.get<Server>(`/config/servers/${serverId}`, {}, true);
+      const response = await this.api.get<Server>(
+        `/config/servers/${serverId}`,
+        {},
+        true
+      );
       return response.data;
     } catch (error) {
-      console.error('Error getting server:', error);
+      console.error("Error getting server:", error);
       throw error;
     }
   }
 }
 
-// Create a default instance for server-side usage
-export const serversService = new ServersService();
+// Client-side instance
+export const serversService = () => new ServersService();
 
-// For backward compatibility, export the function-based approach
-export const serverServersService = () => {
-  const service = new ServersService();
-
-  return {
-    getServers: service.getServers.bind(service),
-    getServer: service.getServer.bind(service),
-  };
-}; 
+// For server-side usage - now accepts websiteId
+export const serverServersService = (websiteId: string) => new ServersService(websiteId);

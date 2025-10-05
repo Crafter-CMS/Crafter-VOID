@@ -1,5 +1,4 @@
-import { BACKEND_URL_WITH_WEBSITE_ID } from "@/lib/constants/base";
-import { ApiClient } from "../useApi";
+import { useApi } from "../useApi";
 import {
   CreateTicketDto,
   ReplyTicketDto,
@@ -13,10 +12,10 @@ export interface TicketResponse {
 }
 
 export class TicketService {
-  private api: ApiClient;
+  private api: ReturnType<typeof useApi>;
 
-  constructor(apiClient?: ApiClient) {
-    this.api = apiClient || new ApiClient(BACKEND_URL_WITH_WEBSITE_ID);
+  constructor() {
+    this.api = useApi(); // v1 default
   }
 
   getTickets = async (): Promise<Ticket[]> => {
@@ -77,17 +76,8 @@ export class TicketService {
   };
 }
 
-export const ticketService = new TicketService();
+// Client-side instance
+export const ticketService = () => new TicketService();
 
-export const serverTicketService = () => {
-  const service = new TicketService();
-
-  return {
-    getTickets: service.getTickets.bind(service),
-    getTicket: service.getTicket.bind(service),
-    createTicket: service.createTicket.bind(service),
-    replyToTicket: service.replyToTicket.bind(service),
-    getTicketCategories: service.getTicketCategories.bind(service),
-    getTicketCategory: service.getTicketCategory.bind(service),
-  };
-};
+// For server-side usage
+export const serverTicketService = () => new TicketService();

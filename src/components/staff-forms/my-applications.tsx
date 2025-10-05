@@ -19,6 +19,7 @@ import Title from "../ui/title";
 import { useRouter } from "next/navigation";
 
 export default function MyApplications() {
+  const staffFormServiceInstance = staffFormService();
   const [applications, setApplications] = useState<StaffFormApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +30,7 @@ export default function MyApplications() {
       try {
         setLoading(true);
         setError(null);
-        const data = await staffFormService.getMyApplications();
+        const data = await staffFormServiceInstance.getMyApplications();
         setApplications(data);
       } catch (error) {
         console.error("Error fetching applications:", error);

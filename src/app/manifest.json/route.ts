@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { serverWebsiteService } from "@/lib/api/services/websiteService";
 import imageLinkGenerate from "@/lib/helpers/imageLinkGenerate";
+import { headers } from "next/headers";
 
 export async function GET(request: NextRequest) {
   try {
-    const websiteService = serverWebsiteService();
+    const headersList = await headers();
+    const websiteId = headersList.get("x-website-id") as string;
+    const websiteService = serverWebsiteService(websiteId);
     const website = await websiteService.getWebsite({
-      id: process.env.NEXT_PUBLIC_WEBSITE_ID || "",
+      id: websiteId || "",
     });
 
     const manifest = {

@@ -22,6 +22,7 @@ import { serverCategoriesService } from "@/lib/api/services/categoriesService";
 import { DefaultBreadcrumb } from "@/components/ui/breadcrumb";
 import ProductActionButtons from "@/components/ui/product-action-buttons";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 
 interface ProductPageProps {
   params: Promise<{
@@ -30,7 +31,9 @@ interface ProductPageProps {
 }
 
 export const generateMetadata = async ({ params }: { params: Promise<{ product_slug: string }> }): Promise<Metadata> => {
-  const product = await serverProductsService().getProductById((await params).product_slug);
+  const headersList = await headers();
+  const websiteId = headersList.get("x-website-id") as string;
+  const product = await serverProductsService(websiteId).getProductById((await params).product_slug);
   return {
     title: product.name,
     description: product.description || "Ürün detayları",
@@ -38,14 +41,15 @@ export const generateMetadata = async ({ params }: { params: Promise<{ product_s
 };
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const productsService = serverProductsService();
-  const websiteService = serverWebsiteService();
-
+  const headersList = await headers();
+  const websiteId = headersList.get("x-website-id") as string;
+  const websiteService = serverWebsiteService(websiteId as string);
+  const productsService = serverProductsService(websiteId as string);
   try {
     const [product, website] = await Promise.all([
       productsService.getProductById((await params).product_slug),
       websiteService.getWebsite({
-        id: process.env.NEXT_PUBLIC_WEBSITE_ID || "",
+        id: websiteId || "",
       }),
     ]);
 
@@ -54,13 +58,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
     }
 
     const currency = website.currency;
-    const server = await serverServersService().getServer(product.server_id);
-    const category = await serverCategoriesService().getCategory(
+    const server = await serverServersService(websiteId).getServer(product.server_id);
+    const category = await serverCategoriesService(websiteId).getCategory(
       product.category
     );
 
     // Get bulk discount from marketplace settings
-    const marketplaceSettings = await serverMarketplaceService().getMarketplaceSettings();
+    const marketplaceSettings = await serverMarketplaceService(websiteId).getMarketplaceSettings();
     const bulkDiscount = marketplaceSettings.bulkDiscount;
 
     // Calculate total discount by combining product discount and bulk discount

@@ -36,14 +36,12 @@ import {
 } from "lucide-react";
 import { AuthContext } from "@/lib/context/AuthContext";
 import { paymentService } from "@/lib/api/services/paymentService";
-import { serverPaymentService } from "@/lib/api/services/paymentService";
 import { userService } from "@/lib/api/services/userService";
 import { PaymentProvider } from "@/lib/types/payment";
 import {
   InitiatePaymentData,
   InitiatePaymentResponse,
 } from "@/lib/types/payment";
-import { WEBSITE_ID } from "@/lib/constants/base";
 
 interface PaymentMethod {
   id: string;
@@ -59,12 +57,17 @@ interface WalletProps {
 
 export default function Wallet({ paymentId, event }: WalletProps) {
   const router = useRouter();
+  const WEBSITE_ID = localStorage.getItem("websiteId");
   const { isAuthenticated, isLoading, user, reloadUser } =
     useContext(AuthContext);
 
   if (!isAuthenticated && !isLoading) {
     router.push("/auth/sign-in?return=/wallet");
   }
+
+  // Create service instances for client-side usage
+  const paymentServiceInstance = paymentService();
+  const userServiceInstance = userService();
 
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [currentCredit, setCurrentCredit] = useState(user?.balance || 0);
@@ -101,7 +104,7 @@ export default function Wallet({ paymentId, event }: WalletProps) {
         setShowPaymentStatus(true);
         
         try {
-          const result = await paymentService.checkPayment({
+          const result = await paymentServiceInstance.checkPayment({
             website_id: WEBSITE_ID || "",
             payment_id: paymentId
           });
@@ -136,7 +139,7 @@ export default function Wallet({ paymentId, event }: WalletProps) {
       setCurrentCredit(user.balance || 0);
     }
 
-    serverPaymentService()
+    paymentServiceInstance
       .getPaymentProviders()
       .then((providers) => {
         setPaymentMethods(
@@ -215,7 +218,7 @@ export default function Wallet({ paymentId, event }: WalletProps) {
 
     setIsUpdatingEmail(true);
     try {
-      await userService.updateUser(user.id, { email: tempEmail });
+      await userServiceInstance.updateUser(user.id, { email: tempEmail });
       setBillingInfo((prev) => ({ ...prev, email: tempEmail }));
       setIsEmailEditing(false);
     } catch (error) {
@@ -260,7 +263,7 @@ export default function Wallet({ paymentId, event }: WalletProps) {
         },
       };
 
-      const response = await paymentService.initiatePayment(paymentData);
+      const response = await paymentServiceInstance.initiatePayment(paymentData);
 
       if (response.success) {
         setPaymentResponse(response);

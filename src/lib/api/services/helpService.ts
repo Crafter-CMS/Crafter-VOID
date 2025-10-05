@@ -1,5 +1,4 @@
-import { BACKEND_URL_WITH_WEBSITE_ID } from "@/lib/constants/base";
-import { ApiClient } from "../useApi";
+import {apiClient, useApi, useServerApi} from "../useApi";
 import {
   GetHelpDto,
   HelpCategory,
@@ -10,10 +9,14 @@ import {
 
 // Server-side website service using ApiClient
 export class HelpService {
-  private api: ApiClient;
+  private api: ReturnType<typeof useApi>;
 
-  constructor(apiClient?: ApiClient) {
-    this.api = apiClient || new ApiClient(BACKEND_URL_WITH_WEBSITE_ID);
+  constructor(websiteId?: string) {
+    if (websiteId) {
+      this.api = useServerApi(websiteId);
+    } else {
+      this.api = useApi();
+    }
   }
 
   // Help Center data operations
@@ -65,17 +68,8 @@ export class HelpService {
   };
 }
 
-// Create a default instance for server-side usage
-export const helpService = new HelpService();
+// Client-side instance
+export const helpService = () => new HelpService();
 
-// For backward compatibility, export the function-based approach
-export const serverHelpService = () => {
-  const service = new HelpService();
-
-  return {
-    getHelpCenter: service.getHelpCenter.bind(service),
-    getCategory: service.getCategory.bind(service),
-    getItem: service.getItem.bind(service),
-    getFAQ: service.getFAQ.bind(service),
-  };
-};
+// For server-side usage
+export const serverHelpService = (websiteId: string) => new HelpService(websiteId);

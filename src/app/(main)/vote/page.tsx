@@ -4,14 +4,15 @@ import VoteProviders from "@/components/vote/VoteProviders";
 import VoteInfo from "@/components/vote/VoteInfo";
 import { DefaultBreadcrumb } from "@/components/ui/breadcrumb";
 import Title from "@/components/ui/title";
+import { headers } from "next/headers";
 
 export const metadata: Metadata = {
   title: "Oy Ver",
   description: "Minecraft sunucumuz için oy verin ve ödüller kazanın!",
 };
 
-async function getVoteProviders() {
-  const voteService = serverVoteService();
+async function getVoteProviders(websiteId: string) {
+  const voteService = serverVoteService(websiteId);
   try {
     const response = await voteService.getVoteProviders();
     return response.providers || [];
@@ -22,7 +23,10 @@ async function getVoteProviders() {
 }
 
 export default async function VotePage() {
-  const providers = await getVoteProviders();
+  const headersList = await headers();
+  const websiteId = headersList.get("x-website-id") as string;
+
+  const providers = await getVoteProviders(websiteId);
 
   return (
     <div>

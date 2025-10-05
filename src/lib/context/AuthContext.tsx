@@ -6,7 +6,7 @@ import {
   ForgotPasswordRequest,
   ResetPasswordRequest,
   AuthService,
-  serverAuthService,
+  serverAuthService, authService,
 } from "@/lib/api/services/authService";
 import { User } from "@/lib/types/user";
 import Loading from "@/components/ui/loading";
@@ -50,18 +50,12 @@ export const AuthProvider = ({
   children: React.ReactNode;
   logo: string;
 }) => {
-  const {
-    signIn: signInService,
-    signUp: signUpService,
-    forgotPassword: forgotPasswordService,
-    resetPassword: resetPasswordService,
-  } = serverAuthService();
-  
-  // Get the API client instance to access token storage and use it for API calls
-  const apiClient = useApi({ baseUrl: BACKEND_URL_WITH_WEBSITE_IDV2 });
-  
+  // Create a single AuthService instance that will be reused
+  const authServiceInstance = authService();
+
+  const apiClient = useApi({ version: 'v2' });
   // Create user service with the same API client instance
-  const userService = new UserService(apiClient);
+  const userService = new UserService();
   
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -112,7 +106,7 @@ export const AuthProvider = ({
     rememberMe?: boolean
   ) => {
     try {
-      const response = await signInService({
+      const response = await authServiceInstance.signIn({
         username,
         password,
         turnstileToken,
@@ -144,7 +138,7 @@ export const AuthProvider = ({
 
   const signUp = async (data: SignUpRequest) => {
     try {
-      const response = await signUpService(data);
+      const response = await authServiceInstance.signUp(data);
 
       // Store tokens in localStorage
       localStorage.setItem("accessToken", response.accessToken);
@@ -165,7 +159,7 @@ export const AuthProvider = ({
 
   const forgotPassword = async (data: ForgotPasswordRequest) => {
     try {
-      await forgotPasswordService(data);
+      await authServiceInstance.forgotPassword(data);
     } catch (error) {
       throw error;
     }
@@ -173,7 +167,7 @@ export const AuthProvider = ({
 
   const resetPassword = async (data: ResetPasswordRequest) => {
     try {
-      await resetPasswordService(data);
+      await authServiceInstance.resetPassword(data);
     } catch (error) {
       throw error;
     }

@@ -1,12 +1,11 @@
-import { ApiClient } from "../useApi";
-import { BACKEND_URL_WITH_WEBSITE_ID } from "@/lib/constants/base";
+import { useApi } from "../useApi";
 import { Report, ReportType } from "@/lib/types/website";
 
 export class ReportService {
-  private api: ApiClient;
+  private api: ReturnType<typeof useApi>;
 
-  constructor(apiClient?: ApiClient) {
-    this.api = apiClient || new ApiClient(BACKEND_URL_WITH_WEBSITE_ID);
+  constructor() {
+    this.api = useApi(); // v1 default
   }
 
   async reportUser(
@@ -22,12 +21,8 @@ export class ReportService {
   }
 }
 
-export const reportService = new ReportService();
+// Client-side instance
+export const reportService = () => new ReportService();
 
-export const serverReportService = () => {
-  const service = new ReportService();
-
-  return {
-    reportUser: service.reportUser.bind(service),
-  };
-};
+// For server-side usage
+export const serverReportService = () => new ReportService();

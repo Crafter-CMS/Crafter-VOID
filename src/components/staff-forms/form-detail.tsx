@@ -28,6 +28,7 @@ interface StaffFormDetailProps {
 }
 
 export default function StaffFormDetail({ form }: StaffFormDetailProps) {
+  const staffFormServiceInstance = staffFormService();
   const { isAuthenticated, isLoading } = useContext(AuthContext);
   const [formValues, setFormValues] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
@@ -64,7 +65,7 @@ export default function StaffFormDetail({ form }: StaffFormDetailProps) {
         value
       }));
 
-      await staffFormService.submitFormApplication(form.id, values);
+      await staffFormServiceInstance.submitFormApplication(form.id, values);
       setSuccess(true);
       
       // Redirect to main staff forms page after successful submission

@@ -17,6 +17,7 @@ interface CreateTicketProps {
 }
 
 export default function CreateTicket({ categories, onTicketCreated }: CreateTicketProps) {
+  const ticketServiceInstance = ticketService();
   const [newTicket, setNewTicket] = useState({
     title: "",
     categoryId: "",
@@ -38,7 +39,7 @@ export default function CreateTicket({ categories, onTicketCreated }: CreateTick
         message: newTicket.message,
       };
 
-      await ticketService.createTicket({ ticket: createTicketDto });
+      await ticketServiceInstance.createTicket({ ticket: createTicketDto });
       
       // Form'u temizle
       setNewTicket({

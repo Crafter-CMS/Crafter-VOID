@@ -1,4 +1,4 @@
-import { ApiClient } from "../useApi";
+import { useApi, useServerApi } from "../useApi";
 import { Website } from "../../types/website";
 import { License } from "../../types/license";
 
@@ -42,22 +42,23 @@ export interface GetWebsiteStatisticsResponse {
   };
 }
 
-// Server-side website service using ApiClient
 export class WebsiteService {
-  private api: ApiClient;
+  private api: ReturnType<typeof useApi>;
+  private statisticsApi: ReturnType<typeof useApi>;
 
-  constructor(apiClient?: ApiClient) {
-    this.api = apiClient || new ApiClient();
+  constructor(websiteId?: string) {
+    if (websiteId) {
+      this.api = useServerApi(websiteId);
+      this.statisticsApi = useServerApi(websiteId, { version: "v2" });
+    } else {
+      this.api = useApi();
+      this.statisticsApi = useApi({ version: "v2" });
+    }
   }
 
-  async verifyLicenseKey(
-    data: VerifyLicenseKeyRequest
-  ): Promise<VerifyLicenseKeyResponse> {
+  async verifyLicenseKey(data: VerifyLicenseKeyRequest): Promise<VerifyLicenseKeyResponse> {
     try {
-      const response = await this.api.post<VerifyLicenseKeyResponse>(
-        "/website/key/verify",
-        data
-      );
+      const response = await this.api.post<VerifyLicenseKeyResponse>("/website/key/verify", data);
       return response.data;
     } catch (error) {
       console.error("Error verifying license key:", error);
@@ -67,8 +68,7 @@ export class WebsiteService {
 
   async getWebsite(data: GetWebsiteRequest): Promise<Website> {
     try {
-      const response = await this.api.post<Website>("/website/get", data);
-
+      const response = await this.api.get<Website>("");
       return response.data;
     } catch (error) {
       console.error("Error getting website:", error);
@@ -78,10 +78,7 @@ export class WebsiteService {
 
   async getWebsiteStatistics(): Promise<GetWebsiteStatisticsResponse> {
     try {
-      const response = await this.api.get<GetWebsiteStatisticsResponse>(
-        `/website/v2/${process.env.NEXT_PUBLIC_WEBSITE_ID}/statistics`
-      );
-
+      const response = await this.statisticsApi.get<GetWebsiteStatisticsResponse>("/statistics");
       return response.data;
     } catch (error) {
       console.error("Error getting website statistics:", error);
@@ -90,16 +87,5 @@ export class WebsiteService {
   }
 }
 
-// Create a default instance for server-side usage
-export const websiteService = new WebsiteService();
-
-// For backward compatibility, export the function-based approach
-export const serverWebsiteService = () => {
-  const service = new WebsiteService();
-
-  return {
-    verifyLicenseKey: service.verifyLicenseKey.bind(service),
-    getWebsite: service.getWebsite.bind(service),
-    getWebsiteStatistics: service.getWebsiteStatistics.bind(service),
-  };
-};
+export const websiteService = () => new WebsiteService();
+export const serverWebsiteService = (websiteId: string) => new WebsiteService(websiteId);

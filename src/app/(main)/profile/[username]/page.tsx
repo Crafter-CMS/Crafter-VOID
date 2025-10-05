@@ -1,9 +1,9 @@
 import { Profile } from "@/components/profile";
 import { DefaultBreadcrumb } from "@/components/ui/breadcrumb";
 import { serverUserService } from "@/lib/api/services/userService";
-import { websiteService } from "@/lib/api/services/websiteService";
-import { WEBSITE_ID } from "@/lib/constants/base";
+import { serverWebsiteService } from "@/lib/api/services/websiteService";
 import { Metadata } from "next";
+import { headers } from "next/headers";
 
 export async function generateMetadata({
   params,
@@ -24,7 +24,9 @@ export default async function ProfilePage({
   params: Promise<{ username: string }>;
 }) {
   const { username } = await params;
-  const website = await websiteService.getWebsite({ id: WEBSITE_ID });
+  const headersList = await headers();
+  const websiteId = headersList.get("x-website-id") || "default_website_id";
+  const website = await serverWebsiteService(websiteId).getWebsite({});
   return (
     <div>
       <DefaultBreadcrumb

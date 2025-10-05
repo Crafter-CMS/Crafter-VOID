@@ -41,12 +41,15 @@ export default function Help({ discordLink }: { discordLink: string }) {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [activeTab, setActiveTab] = useState("categories");
   const router = useRouter();
+
+  const helpServiceInstance = helpService();
+
   useEffect(() => {
     const fetchHelpData = async () => {
       try {
         setLoading(true);
         // Burada gerçek websiteId kullanılmalı
-        const data = await helpService.getHelpCenter({
+        const data = await helpServiceInstance.getHelpCenter({
           query: {
             activeOnly: true,
             limit: 50,

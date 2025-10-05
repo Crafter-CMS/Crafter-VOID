@@ -1,13 +1,18 @@
-import { BACKEND_URL_WITH_WEBSITE_ID } from "@/lib/constants/base";
-import { ApiClient } from "../useApi";
+import { useApi, useServerApi } from "../useApi";
 import type { Coupon, MarketplaceSettings } from "@/lib/types/marketplace";
 
 // Server-side website service using ApiClient
 export class MarketplaceService {
-  private api: ApiClient;
+  private api: ReturnType<typeof useApi>;
 
-  constructor(apiClient?: ApiClient) {
-    this.api = apiClient || new ApiClient(BACKEND_URL_WITH_WEBSITE_ID);
+  constructor(websiteId?: string) {
+    if (websiteId) {
+      // Server-side usage with websiteId
+      this.api = useServerApi(websiteId); // v1 default
+    } else {
+      // Client-side usage
+      this.api = useApi(); // v1 default
+    }
   }
 
   async purchaseProduct(
@@ -33,16 +38,8 @@ export class MarketplaceService {
   }
 }
 
-// Create a default instance for server-side usage
-export const marketplaceService = new MarketplaceService();
+// Client-side instance
+export const marketplaceService = () => new MarketplaceService();
 
-// For backward compatibility, export the function-based approach
-export const serverMarketplaceService = () => {
-  const service = new MarketplaceService();
-
-  return {
-    purchaseProduct: service.purchaseProduct.bind(service),
-    getCouponInfo: service.getCouponInfo.bind(service),
-    getMarketplaceSettings: service.getMarketplaceSettings.bind(service),
-  };
-};
+// For server-side usage - now accepts websiteId
+export const serverMarketplaceService = (websiteId: string) => new MarketplaceService(websiteId);

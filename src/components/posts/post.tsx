@@ -35,6 +35,7 @@ import { AuthContext } from "@/lib/context/AuthContext";
 import imageLinkGenerate from "@/lib/helpers/imageLinkGenerate";
 
 export default function Post() {
+  const postsServiceInstance = postsService();
   const params = useParams();
   const postSlug = params?.post_slug as string;
   const { user } = useContext(AuthContext);
@@ -52,7 +53,7 @@ export default function Post() {
 
   const likePost = async () => {
     try {
-      const response = await postsService.likePost(post?.id || "");
+      const response = await postsServiceInstance.likePost(post?.id || "");
       setLikeCount(response.data.likeCount);
       setIsLiked(true);
     } catch (err) {
@@ -62,7 +63,7 @@ export default function Post() {
 
   const unlikePost = async () => {
     try {
-      const response = await postsService.unlikePost(post?.id || "");
+      const response = await postsServiceInstance.unlikePost(post?.id || "");
       setLikeCount(response.data.likeCount);
       setIsLiked(false);
     } catch (err) {
@@ -75,7 +76,7 @@ export default function Post() {
       setLoading(true);
       setError(null);
 
-      const foundPost = await postsService.getPostBySlug(postSlug);
+      const foundPost = await postsServiceInstance.getPostBySlug(postSlug);
 
       if (foundPost) {
         setPost(foundPost);
