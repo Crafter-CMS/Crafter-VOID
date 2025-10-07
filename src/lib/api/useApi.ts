@@ -146,7 +146,6 @@ export class ApiClient {
     // Request interceptor
     this.api.interceptors.request.use(
       (config) => {
-        config.headers.set('Origin', process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000');
         const token = this.tokenStorage.getAccessToken();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
