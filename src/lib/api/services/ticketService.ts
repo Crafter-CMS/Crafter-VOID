@@ -15,7 +15,7 @@ export class TicketService {
   private api: ReturnType<typeof useApi>;
 
   constructor() {
-    this.api = useApi(); // v1 default
+    this.api = useApi({ version: "v2" }); // v1 default
   }
 
   getTickets = async (): Promise<Ticket[]> => {
