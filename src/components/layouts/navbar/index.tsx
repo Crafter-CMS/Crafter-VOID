@@ -557,7 +557,9 @@ const Navbar = forwardRef<
                           "accessToken"
                         )}&refreshToken=${localStorage.getItem(
                           "refreshToken"
-                        )}&websiteId=${WEBSITE_ID}`
+                        )}&websiteId=${localStorage.getItem(
+                          "websiteId"
+                        )}`
                       );
                     }}
                   >
