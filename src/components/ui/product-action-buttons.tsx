@@ -27,6 +27,8 @@ export default function ProductActionButtons({
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const router = useRouter();
 
+  const marketplaceServiceInstance = marketplaceService();
+
   const handlePurchase = () => {
     alert({
       title: "Satın Al",
@@ -36,7 +38,7 @@ export default function ProductActionButtons({
       autoClose: false,
       showCancel: true,
       onConfirm: () => {
-        marketplaceService.purchaseProduct([product.id]).then((res) => {
+        marketplaceServiceInstance.purchaseProduct([product.id]).then((res) => {
           if (res.success) {
             alert({
               title: "Satın Alındı!",

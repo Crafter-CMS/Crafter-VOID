@@ -1,15 +1,17 @@
 import { User, WallMessage } from "@/lib/types/user";
-import { ApiClient } from "@/lib/api/useApi";
+import { useApi, useServerApi } from "@/lib/api/useApi";
 
 export class UserService {
-  private api: ApiClient;
+  private api: ReturnType<typeof useApi>;
 
-  constructor(apiClient?: ApiClient) {
-    this.api =
-      apiClient ||
-      new ApiClient(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/website/v2/${process.env.NEXT_PUBLIC_WEBSITE_ID}`
-      );
+  constructor(websiteId?: string) {
+    if (websiteId) {
+      // Server-side usage with websiteId
+      this.api = useServerApi(websiteId, { version: "v2" });
+    } else {
+      // Client-side usage
+      this.api = useApi({ version: "v2" });
+    }
   }
 
   // Tüm kullanıcıları getir
@@ -140,27 +142,8 @@ export class UserService {
   }
 }
 
-export const userService = new UserService();
+// Client-side instance
+export const userService = () => new UserService();
 
-export const serverUserService = () => {
-  const service = new UserService();
-
-  return {
-    getUsers: service.getUsers.bind(service),
-    getUserById: service.getUserById.bind(service),
-    getMe: service.getMe.bind(service),
-    updateUser: service.updateUser.bind(service),
-    updateUserRole: service.updateUserRole.bind(service),
-    addBalance: service.addBalance.bind(service),
-    reportUser: service.reportUser.bind(service),
-    banUser: service.banUser.bind(service),
-    unbanUser: service.unbanUser.bind(service),
-    getWallMessages: service.getWallMessages.bind(service),
-    sendWallMessage: service.sendWallMessage.bind(service),
-    replyWallMessage: service.replyWallMessage.bind(service),
-    changePassword: service.changePassword.bind(service),
-    setupTwoFactor: service.setupTwoFactor.bind(service),
-    verifyTwoFactor: service.verifyTwoFactor.bind(service),
-    disableTwoFactor: service.disableTwoFactor.bind(service),
-  };
-};
+// For server-side usage - now accepts websiteId
+export const serverUserService = (websiteId: string) => new UserService(websiteId);

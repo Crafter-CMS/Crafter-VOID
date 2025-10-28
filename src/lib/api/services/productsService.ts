@@ -1,11 +1,17 @@
-import { BACKEND_URL_WITH_WEBSITE_ID } from "@/lib/constants/base";
 import { Product } from "@/lib/types/product";
-import { ApiClient } from "../useApi";
+import { useApi, useServerApi } from "../useApi";
 
 export class ProductsService {
-  private api: ApiClient;
-  constructor(apiClient?: ApiClient) {
-    this.api = apiClient || new ApiClient(BACKEND_URL_WITH_WEBSITE_ID);
+  private api: ReturnType<typeof useApi>;
+
+  constructor(websiteId?: string) {
+    if (websiteId) {
+      // Server-side usage with websiteId
+      this.api = useServerApi(websiteId); // v1 default
+    } else {
+      // Client-side usage
+      this.api = useApi(); // v1 default
+    }
   }
 
   async getProductsByCategory(category_id: string): Promise<Product[]> {
@@ -23,12 +29,8 @@ export class ProductsService {
   }
 }
 
-export const productsService = new ProductsService();
+// Client-side instance
+export const productsService = () => new ProductsService();
 
-export const serverProductsService = () => {
-  const service = new ProductsService();
-  return {
-    getProductsByCategory: service.getProductsByCategory.bind(service),
-    getProductById: service.getProductById.bind(service),
-  };
-};
+// For server-side usage - now accepts websiteId
+export const serverProductsService = (websiteId: string) => new ProductsService(websiteId);

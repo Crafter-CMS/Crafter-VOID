@@ -1,5 +1,4 @@
-import { BACKEND_URL_WITH_WEBSITE_ID } from "@/lib/constants/base";
-import { ApiClient } from "../useApi";
+import { useApi } from "../useApi";
 
 export interface RedeemCodeResponse {
   success: boolean;
@@ -9,10 +8,10 @@ export interface RedeemCodeResponse {
 }
 
 export class RedeemService {
-  private api: ApiClient;
+  private api: ReturnType<typeof useApi>;
 
-  constructor(apiClient?: ApiClient) {
-    this.api = apiClient || new ApiClient(BACKEND_URL_WITH_WEBSITE_ID);
+  constructor() {
+    this.api = useApi(); // v1 default
   }
 
   redeemCode = async (code: string): Promise<RedeemCodeResponse> => {
@@ -24,15 +23,10 @@ export class RedeemService {
     );
     return response.data;
   };
-
 }
 
-export const redeemService = new RedeemService();
+// Client-side instance
+export const redeemService = () => new RedeemService();
 
-export const serverRedeemService = () => {
-  const service = new RedeemService();
-
-  return {
-    redeemCode: service.redeemCode.bind(service),
-  };
-};
+// For server-side usage
+export const serverRedeemService = () => new RedeemService();

@@ -1,8 +1,9 @@
 import { DefaultBreadcrumb } from "@/components/ui/breadcrumb";
 import { Metadata } from "next";
-import { staffFormService } from "@/lib/api/services/staffFormService";
+import { serverStaffFormService } from "@/lib/api/services/staffFormService";
 import { notFound } from "next/navigation";
 import StaffFormDetail from "@/components/staff-forms/form-detail";
+import { headers } from "next/headers";
 
 interface StaffFormPageProps {
   params: Promise<{
@@ -12,7 +13,9 @@ interface StaffFormPageProps {
 
 export async function generateMetadata({ params }: StaffFormPageProps): Promise<Metadata> {
   try {
-    const form = await staffFormService.getForm((await params).form_slug);
+    const headersList = await headers();
+    const websiteId = headersList.get("x-website-id") || "default_website_id";
+    const form = await serverStaffFormService(websiteId).getForm((await params).form_slug);
     return {
       title: `${form.title} - Başvuru Formu`,
       description: form.description,
@@ -27,7 +30,9 @@ export async function generateMetadata({ params }: StaffFormPageProps): Promise<
 
 export default async function StaffFormPage({ params }: StaffFormPageProps) {
   try {
-    const form = await staffFormService.getForm((await params).form_slug);
+    const headersList = await headers();
+    const websiteId = headersList.get("x-website-id") || "default_website_id";
+    const form = await serverStaffFormService(websiteId).getForm((await params).form_slug);
     
     return (
       <div>

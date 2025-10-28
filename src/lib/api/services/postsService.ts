@@ -1,18 +1,24 @@
-import { ApiClient } from "../useApi";
+import { useApi, useServerApi } from "../useApi";
 import { GetPostsParams, PostLikeResponse, PostsResponse, WebsitePost } from "../../types/posts";
 
 // Server-side website service using ApiClient
 export class PostsService {
-  private api: ApiClient;
+  private api: ReturnType<typeof useApi>;
 
-  constructor(apiClient?: ApiClient) {
-    this.api = apiClient || new ApiClient();
+  constructor(websiteId?: string) {
+    if (websiteId) {
+      // Server-side usage with websiteId
+      this.api = useServerApi(websiteId); // v1 default
+    } else {
+      // Client-side usage
+      this.api = useApi(); // v1 default
+    }
   }
 
   async getPosts(params?: GetPostsParams): Promise<PostsResponse> {
     try {
       const response = await this.api.get<PostsResponse>(
-        `/website/${process.env.NEXT_PUBLIC_WEBSITE_ID}/posts`,
+        `/posts`,
         { params }
       );
 
@@ -26,7 +32,7 @@ export class PostsService {
   async getPostBySlug(slug: string): Promise<WebsitePost | null> {
     try {
       const response = await this.api.get<{ data: WebsitePost }>(
-        `/website/${process.env.NEXT_PUBLIC_WEBSITE_ID}/posts/${slug}`,
+        `/posts/${slug}`,
       );
 
       return response.data.data;
@@ -39,7 +45,7 @@ export class PostsService {
   async likePost(postId: string): Promise<PostLikeResponse> {
     try {
       const response = await this.api.post<PostLikeResponse>(
-        `/website/${process.env.NEXT_PUBLIC_WEBSITE_ID}/posts/${postId}/like`
+        `/posts/${postId}/like`
       );
       return response.data;
     } catch (error) {
@@ -51,7 +57,7 @@ export class PostsService {
   async unlikePost(postId: string): Promise<PostLikeResponse> {
     try {
       const response = await this.api.delete<PostLikeResponse>(
-        `/website/${process.env.NEXT_PUBLIC_WEBSITE_ID}/posts/${postId}/like`
+        `/posts/${postId}/like`
       );
       return response.data;
     } catch (error) {
@@ -61,15 +67,8 @@ export class PostsService {
   }
 }
 
-// Create a default instance for server-side usage
-export const postsService = new PostsService();
+// Client-side instance
+export const postsService = () => new PostsService();
 
-// For backward compatibility, export the function-based approach
-export const serverPostsService = () => {
-  const service = new PostsService();
-
-  return {
-    getPosts: service.getPosts.bind(service),
-    getPostBySlug: service.getPostBySlug.bind(service),
-  };
-};
+// For server-side usage - now accepts websiteId
+export const serverPostsService = (websiteId: string) => new PostsService(websiteId);

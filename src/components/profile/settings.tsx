@@ -27,6 +27,7 @@ import { formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
 
 export default function Settings() {
+  const userServiceInstance = userService();
   const { user: currentUser, setUser } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
@@ -79,7 +80,7 @@ export default function Settings() {
     try {
       setLoading(true);
       // E-posta değiştirme servisi çağrılacak
-      await userService.updateUser(currentUser.id, { email: newEmail });
+      await userServiceInstance.updateUser(currentUser.id, { email: newEmail });
       
       toast.success("E-posta değiştirme talebi gönderildi. Yeni e-posta adresinizi kontrol edin.");
       setEmailChangeDialog(false);
@@ -87,7 +88,7 @@ export default function Settings() {
       setEmailChangeReason("");
       
       // Kullanıcı bilgilerini güncelle
-      const updatedUser = await userService.getMe();
+      const updatedUser = await userServiceInstance.getMe();
       setUser(updatedUser);
     } catch (err) {
       console.error("E-posta değiştirilemedi:", err);
@@ -113,7 +114,7 @@ export default function Settings() {
 
     try {
       setLoading(true);
-      await userService.changePassword(currentPassword, newPassword);
+      await userServiceInstance.changePassword(currentPassword, newPassword);
       
       toast.success("Şifre başarıyla değiştirildi");
       setPasswordChangeDialog(false);
@@ -133,7 +134,7 @@ export default function Settings() {
     try {
       setLoading(true);
       // 2FA kurulum servisi çağrılacak
-      const result = await userService.setupTwoFactor();
+      const result = await userServiceInstance.setupTwoFactor();
       setTwoFactorSecret(result.secret);
       setTwoFactorSetupDialog(true);
     } catch (err) {
@@ -150,7 +151,7 @@ export default function Settings() {
 
     try {
       setLoading(true);
-      await userService.verifyTwoFactor(twoFactorSecret, twoFactorCode);
+      await userServiceInstance.verifyTwoFactor(twoFactorSecret, twoFactorCode);
       
       toast.success("2FA başarıyla aktifleştirildi");
       setTwoFactorSetupDialog(false);
@@ -159,7 +160,7 @@ export default function Settings() {
       setTwoFactorEnabled(true);
       
       // Kullanıcı bilgilerini güncelle
-      const updatedUser = await userService.getMe();
+      const updatedUser = await userServiceInstance.getMe();
       setUser(updatedUser);
     } catch (err) {
       console.error("2FA doğrulanamadı:", err);
@@ -173,13 +174,13 @@ export default function Settings() {
   const handleTwoFactorDisable = async () => {
     try {
       setLoading(true);
-      await userService.disableTwoFactor();
+      await userServiceInstance.disableTwoFactor();
       
       toast.success("2FA devre dışı bırakıldı");
       setTwoFactorEnabled(false);
       
       // Kullanıcı bilgilerini güncelle
-      const updatedUser = await userService.getMe();
+      const updatedUser = await userServiceInstance.getMe();
       setUser(updatedUser);
     } catch (err) {
       console.error("2FA devre dışı bırakılamadı:", err);

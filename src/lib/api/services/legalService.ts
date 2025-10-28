@@ -1,5 +1,4 @@
-import { BACKEND_URL_WITH_WEBSITE_ID } from "@/lib/constants/base";
-import { ApiClient } from "@/lib/api/useApi";
+import {useApi, useServerApi} from "@/lib/api/useApi";
 
 /**
  * @description Legal dokümanların veri yapısı.
@@ -11,25 +10,25 @@ export interface LegalDocuments {
 }
 
 export class LegalService {
-  private api: ApiClient;
+    private api: ReturnType<typeof useApi>;
 
-  constructor(apiClient?: ApiClient) {
-    this.api = apiClient || new ApiClient(BACKEND_URL_WITH_WEBSITE_ID);
-  }
+    constructor(websiteId?: string) {
+        if (websiteId) {
+            this.api = useServerApi(websiteId);
+        } else {
+            this.api = useApi();
+        }
+    }
 
-  async getLegalDocuments(): Promise<LegalDocuments> {
-    const response = await this.api.get<LegalDocuments>(`/config/legal`, {}, true);
-    return response.data;
-  }
+    async getLegalDocuments(): Promise<LegalDocuments> {
+        const response = await this.api.get<LegalDocuments>(`/config/legal`, {}, true);
+        return response.data;
+    }
 
 }
 
-export const legalService = new LegalService();
+// Client-side instance
+export const legalService = () => new LegalService();
 
-export const serverLegalService = () => {
-  const service = new LegalService();
-
-  return {
-    getLegalDocuments: service.getLegalDocuments.bind(service),
-  };
-};
+// For server-side usage
+export const serverLegalService = (websiteId: string) => new LegalService(websiteId);

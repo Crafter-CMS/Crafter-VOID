@@ -1,13 +1,12 @@
-import { BACKEND_URL_WITH_WEBSITE_ID } from "@/lib/constants/base";
-import { ApiClient } from "../useApi";
+import { useApi } from "../useApi";
 import { ChestItem } from "@/lib/types/chest";
 
 // Server-side website service using ApiClient
 export class ChestService {
-  private api: ApiClient;
+  private api: ReturnType<typeof useApi>;
 
-  constructor(apiClient?: ApiClient) {
-    this.api = apiClient || new ApiClient(BACKEND_URL_WITH_WEBSITE_ID);
+  constructor() {
+    this.api = useApi(); // v1 default
   }
 
   async getChestItems(user_id: string): Promise<ChestItem[]> {
@@ -29,15 +28,8 @@ export class ChestService {
   }
 }
 
-// Create a default instance for server-side usage
-export const chestService = new ChestService();
+// Client-side instance
+export const chestService = () => new ChestService();
 
-// For backward compatibility, export the function-based approach
-export const serverChestService = () => {
-  const service = new ChestService();
-
-  return {
-    getChestItems: service.getChestItems.bind(service),
-    useChestItem: service.useChestItem.bind(service),
-  };
-};
+// For server-side usage
+export const serverChestService = () => new ChestService();

@@ -1,20 +1,32 @@
 import { Metadata } from "next";
-import { serversService } from "@/lib/api/services/serversService";
+import { serverServersService } from "@/lib/api/services/serversService";
 import StoreCard from "@/components/ui/store/store-card";
 import { serverCategoriesService } from "@/lib/api/services/categoriesService";
 import { DefaultBreadcrumb } from "@/components/ui/breadcrumb";
 import Title from "@/components/ui/title";
 import StaticAlert from "@/components/ui/alerts/static-alert";
-import { marketplaceService } from "@/lib/api/services/marketplaceService";
-import { websiteService } from "@/lib/api/services/websiteService";
-import { WEBSITE_ID } from "@/lib/constants/base";
+import { serverMarketplaceService } from "@/lib/api/services/marketplaceService";
+import { serverWebsiteService } from "@/lib/api/services/websiteService";
+import { headers } from "next/headers";
+
+async function getWebsite() {
+  const headersList = await headers();
+  const websiteId = headersList.get("x-website-id") as string;
+
+  const websiteService = serverWebsiteService(websiteId as string);
+  const website = await websiteService.getWebsite({ id: websiteId || "" });
+  
+  return website;
+}
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ server_slug: string }>;
 }): Promise<Metadata> {
-  const server = await serversService.getServer((await params).server_slug);
+  const headersList = await headers();
+  const websiteId = headersList.get("x-website-id") as string;
+  const server = await serverServersService(websiteId).getServer((await params).server_slug);
   return {
     title: `${server.name}`,
     description: `${server.name} isimli oyuna ait ürün kategorileri!`,
@@ -26,12 +38,14 @@ export default async function ServerPage({
 }: {
   params: Promise<{ server_slug: string }>;
 }) {
-  const website = await websiteService.getWebsite({ id: WEBSITE_ID });
-  const server = await serversService.getServer((await params).server_slug);
-  const categories = await serverCategoriesService().getCategoriesByServer(
+  const website = await getWebsite();
+  const headersList = await headers();
+  const websiteId = headersList.get("x-website-id") as string;
+  const server = await serverServersService(websiteId).getServer((await params).server_slug);
+  const categories = await serverCategoriesService(websiteId).getCategoriesByServer(
     server.id
   );
-  const marketplaceSettings = await marketplaceService.getMarketplaceSettings();
+  const marketplaceSettings = await serverMarketplaceService(websiteId).getMarketplaceSettings();
   return (
     <div>
       <div className="flex flex-col gap-4">

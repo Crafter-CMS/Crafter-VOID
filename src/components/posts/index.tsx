@@ -12,6 +12,7 @@ import { postsService } from '@/lib/api/services/postsService';
 import { GetPostsParams, PostsResponse, WebsitePost } from '@/lib/types/posts';
 
 export default function Posts() {
+  const postsServiceInstance = postsService();
   const [posts, setPosts] = useState<WebsitePost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +35,7 @@ export default function Posts() {
       setLoading(true);
       setError(null);
       
-      const response: PostsResponse = await postsService.getPosts(params);
+      const response: PostsResponse = await postsServiceInstance.getPosts(params);
       
       setPosts(response.data);
       setPagination(response.pagination);

@@ -1,26 +1,29 @@
 import Post from "@/components/posts/post";
-import { postsService } from "@/lib/api/services/postsService";
-import { lexicalToString } from "@/lib/helpers/lexicalToString";
+import {serverPostsService} from "@/lib/api/services/postsService";
+import {lexicalToString} from "@/lib/helpers/lexicalToString";
+import {headers} from "next/headers";
 
 export const generateMetadata = async ({
-  params,
-}: {
-  params: Promise<{ post_slug: string }>;
+                                           params,
+                                       }: {
+    params: Promise<{ post_slug: string }>;
 }) => {
-  const { post_slug } = await params;
-  const post = await postsService.getPostBySlug(post_slug);
-  return {
-    title: post?.title || "Gönderi",
-    description:
-      `${post?.metaDescription} - ${lexicalToString(post?.content)}` ||
-      "Gönderi",
-  };
+    const {post_slug} = await params;
+    const headersList = await headers();
+    const websiteId = headersList.get("x-website-id") as string;
+    const post = await serverPostsService(websiteId).getPostBySlug(post_slug);
+    return {
+        title: post?.title || "Gönderi",
+        description:
+            `${post?.metaDescription} - ${lexicalToString(post?.content)}` ||
+            "Gönderi",
+    };
 };
 
 export default function PostPage() {
-  return (
-    <div>
-      <Post />
-    </div>
-  );
+    return (
+        <div>
+            <Post/>
+        </div>
+    );
 }

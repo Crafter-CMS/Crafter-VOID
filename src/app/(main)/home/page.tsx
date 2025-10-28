@@ -4,6 +4,19 @@ import Posts from "@/components/layouts/posts";
 import Statistics from "@/components/layouts/statistics";
 import CTA from "@/components/layouts/cta";
 import { serverPostsService } from "@/lib/api/services/postsService";
+import { headers } from "next/headers";
+
+async function getWebsite() {
+  const headersList = await headers();
+  const websiteId = headersList.get("x-website-id");
+
+  const websiteService = serverWebsiteService(websiteId as string);
+  const website = await websiteService.getWebsite({
+    id: websiteId || "",
+  });
+  
+  return website;
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   const website = await getWebsite();
@@ -14,22 +27,18 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-async function getWebsite() {
-  const websiteService = serverWebsiteService();
-  const website = await websiteService.getWebsite({
-    id: process.env.NEXT_PUBLIC_WEBSITE_ID || "",
-  });
-  return website;
-}
-
 async function getWebsiteStatistics() {
-  const websiteService = serverWebsiteService();
+  const headersList = await headers();
+  const websiteId = headersList.get("x-website-id") as string;
+  const websiteService = serverWebsiteService(websiteId as string);
   const websiteStatistics = await websiteService.getWebsiteStatistics();
   return websiteStatistics;
 }
 
 async function getPosts() {
-  const postsService = serverPostsService();
+  const headersList = await headers();
+  const websiteId = headersList.get("x-website-id") as string;
+  const postsService = serverPostsService(websiteId as string);
   const posts = await postsService.getPosts();
   return posts;
 }

@@ -37,6 +37,8 @@ export default function Support() {
   const [loading, setLoading] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
 
+  const ticketServiceInstance = ticketService();
+
   if(!isLoading && !isAuthenticated) {
     router.push("/auth/sign-in?return=/support");
   }
@@ -49,8 +51,8 @@ export default function Support() {
     try {
       setLoading(true);
       const [ticketsData, categoriesData] = await Promise.all([
-        ticketService.getTickets(),
-        ticketService.getTicketCategories(),
+        ticketServiceInstance.getTickets(),
+        ticketServiceInstance.getTicketCategories(),
       ]);
       setTickets(ticketsData);
       setCategories(categoriesData);

@@ -1,14 +1,17 @@
-import { Metadata } from "next";
+import {Metadata} from "next";
 import Help from "@/components/help/index";
-import { websiteService } from "@/lib/api/services/websiteService";
-import { WEBSITE_ID } from "@/lib/constants/base";
+import {serverWebsiteService} from "@/lib/api/services/websiteService";
+import {headers} from 'next/headers'
 
 export const metadata: Metadata = {
-  title: "Yardım",
-  description: "Yardım",
+    title: "Yardım",
+    description: "Yardım",
 };
 
 export default async function HelpPage() {
-  const website = await websiteService.getWebsite({ id: WEBSITE_ID });
-  return <Help discordLink={website.social_media.discord ?? ""} />;
+    const headersList = await headers();
+    const websiteId = headersList.get("x-website-id") || "default_website_id";
+    const website = await serverWebsiteService(websiteId).getWebsite({});
+
+    return <Help discordLink={website.social_media.discord ?? ""}/>;
 }

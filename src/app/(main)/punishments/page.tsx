@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { DefaultBreadcrumb } from "@/components/ui/breadcrumb";
 import Title from "@/components/ui/title";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Ban, MicOff, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 

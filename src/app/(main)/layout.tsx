@@ -3,16 +3,19 @@ import { serverWebsiteService } from "@/lib/api/services/websiteService";
 import Footer from "@/components/layouts/footer";
 import { getDiscordStatus } from "@/lib/helpers/statusHelper";
 import Hero from "@/components/layouts/hero";
+import { headers } from "next/headers";
 
 export default async function MainLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const websiteService = serverWebsiteService();
+  const headersList = await headers();
+  const websiteId = headersList.get("x-website-id") as string;
+  const websiteService = serverWebsiteService(websiteId as string);
   
-  const { website } = await websiteService.verifyLicenseKey({
-    key: process.env.NEXT_PUBLIC_LICENSE_KEY || "",
+  const website = await websiteService.getWebsite({
+    id: websiteId || "",
   });
 
   // Server bilgilerini güvenli şekilde al

@@ -1,12 +1,25 @@
 import { Metadata } from "next";
-import { serversService } from "@/lib/api/services/serversService";
+import { serverServersService } from "@/lib/api/services/serversService";
 import StoreCard from "@/components/ui/store/store-card";
 import { DefaultBreadcrumb } from "@/components/ui/breadcrumb";
 import Title from "@/components/ui/title";
-import { marketplaceService } from "@/lib/api/services/marketplaceService";
+import { serverMarketplaceService } from "@/lib/api/services/marketplaceService";
 import StaticAlert from "@/components/ui/alerts/static-alert";
-import { websiteService } from "@/lib/api/services/websiteService";
-import { WEBSITE_ID } from "@/lib/constants/base";
+import { serverWebsiteService } from "@/lib/api/services/websiteService";
+import { headers } from "next/headers";
+import { Server } from "@/lib/types/server";
+
+async function getWebsite() {
+  const headersList = await headers();
+  const websiteId = headersList.get("x-website-id") as string;
+
+  const websiteService = serverWebsiteService(websiteId as string);
+  const website = await websiteService.getWebsite({
+    id: websiteId || "",
+  });
+  
+  return website;
+}
 
 export const metadata: Metadata = {
   title: "Mağaza",
@@ -14,9 +27,11 @@ export const metadata: Metadata = {
 };
 
 export default async function StorePage() {
-  const servers = await serversService.getServers();
-  const marketplaceSettings = await marketplaceService.getMarketplaceSettings();
-  const website = await websiteService.getWebsite({ id: WEBSITE_ID });
+  const headersList = await headers();
+  const websiteId = headersList.get("x-website-id") as string;
+  const servers = await serverServersService(websiteId).getServers();
+  const marketplaceSettings = await serverMarketplaceService(websiteId).getMarketplaceSettings();
+  const website = await getWebsite();
 
   return (
     <div>
@@ -41,7 +56,7 @@ export default async function StorePage() {
         />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {servers.length > 0 ? (
-            servers.map((server) => (
+            servers.map((server: Server) => (
               <StoreCard
                 key={server.id}
                 name={server.name}

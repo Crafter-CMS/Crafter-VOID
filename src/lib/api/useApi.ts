@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { BACKEND_URL, BACKEND_URL_WITH_WEBSITE_IDV2 } from '../constants/base';
+import { BACKEND_URL } from '../constants/base';
 import { ErrorMessages, ErrorType } from '../constants/errors';
 import { ApiResponse, CustomError, ErrorResponse, RefreshTokenResponse, ValidationError } from '../types/ApiClass';
 
@@ -9,6 +9,8 @@ interface TokenStorage {
   getRefreshToken(): string | null;
   setAccessToken(token: string): void;
   setRefreshToken(token: string): void;
+
+  getWebsiteId(): string | null;
   removeTokens(): void;
 }
 
@@ -16,6 +18,9 @@ interface TokenStorage {
 class ServerTokenStorage implements TokenStorage {
   getAccessToken(): string | null { return null; }
   getRefreshToken(): string | null { return null; }
+
+  getWebsiteId(): string | null { return null; }
+
   setAccessToken(token: string): void {}
   setRefreshToken(token: string): void {}
   removeTokens(): void {}
@@ -34,6 +39,14 @@ class ClientTokenStorage implements TokenStorage {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('refreshToken');
     }
+    return null;
+  }
+
+  getWebsiteId(): string | null {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('websiteId') || null;
+    }
+
     return null;
   }
 
@@ -62,16 +75,42 @@ export class ApiClient {
   private tokenStorage: TokenStorage;
   private isRefreshing = false;
   private refreshTokenQueue: (() => void)[] = [];
+  private websiteId: string | null = null;
+  private version: 'v1' | 'v2';
+  private skipWebsiteId: boolean = false; // New flag for payment endpoints
 
-  constructor(
-    baseUrl: string = BACKEND_URL,
-    headers: Record<string, string> = { 'Content-Type': 'application/json' },
-    tokenStorage?: TokenStorage
-  ) {
-    this.tokenStorage = tokenStorage || (typeof window !== 'undefined' ? new ClientTokenStorage() : new ServerTokenStorage());
-    
+  constructor(options?: {
+    headers?: Record<string, string>;
+    version?: 'v1' | 'v2';
+    websiteId?: string; // Server-side için websiteId parametresi
+    skipWebsiteId?: boolean; // Skip websiteId in baseUrl for payment endpoints
+  }) {
+    const { headers = { 'Content-Type': 'application/json' }, version = 'v1', websiteId, skipWebsiteId = false } = options || {};
+
+    this.tokenStorage = typeof window !== 'undefined' ? new ClientTokenStorage() : new ServerTokenStorage();
+    this.websiteId = websiteId || this.tokenStorage.getWebsiteId();
+    this.version = version;
+    this.skipWebsiteId = skipWebsiteId;
+
+    // Auto-generate baseUrl based on version and websiteId
+    let finalBaseUrl: string;
+
+    if (skipWebsiteId) {
+      // For payment endpoints - use direct backend URL
+      finalBaseUrl = BACKEND_URL;
+    } else if (this.websiteId) {
+      if (version === 'v2') {
+        finalBaseUrl = `${BACKEND_URL}/website/v2/${this.websiteId}`;
+      } else {
+        finalBaseUrl = `${BACKEND_URL}/website/${this.websiteId}`;
+      }
+    } else {
+      // Fallback to base URL if no websiteId
+      finalBaseUrl = BACKEND_URL;
+    }
+
     this.api = axios.create({
-      baseURL: baseUrl,
+      baseURL: finalBaseUrl,
       headers: headers,
     });
 
@@ -99,11 +138,14 @@ export class ApiClient {
     return this.tokenStorage.getRefreshToken();
   }
 
+  public getWebsiteId(): string | null {
+    return this.websiteId || this.tokenStorage.getWebsiteId();
+  }
+
   private setupInterceptors(): void {
     // Request interceptor
     this.api.interceptors.request.use(
       (config) => {
-        config.headers.set('Origin', process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000');
         const token = this.tokenStorage.getAccessToken();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
@@ -173,7 +215,7 @@ export class ApiClient {
       }
 
       const response = await axios.post<RefreshTokenResponse>(
-        `${BACKEND_URL_WITH_WEBSITE_IDV2}/auth/refresh-token`,
+        `${BACKEND_URL}v2/${this.websiteId}/auth/refresh-token`,
         { refresh_token: refreshToken }
       );
 
@@ -224,6 +266,12 @@ export class ApiClient {
 
   async request<T>(config: AxiosRequestConfig, authorize = true): Promise<ApiResponse<T>> {
     try {
+      // Always add x-website-id header
+      config.headers = {
+        ...config.headers,
+        'x-website-id': this.websiteId,
+      };
+
       if (authorize) {
         const token = this.tokenStorage.getAccessToken();
         if (token) {
@@ -267,14 +315,47 @@ export const apiClient = new ApiClient();
 
 // For backward compatibility, export a hook-like function that returns the API client
 export const useApi = (options?: {
-  baseUrl?: string;
+  version?: 'v1' | 'v2';
   headers?: Record<string, string>;
-  tokenStorage?: TokenStorage;
+  skipWebsiteId?: boolean; // New option for payment endpoints
 }) => {
-  if (options) {
-    return new ApiClient(options.baseUrl, options.headers, options.tokenStorage);
+  const { skipWebsiteId = false, ...apiOptions } = options || {};
+
+  if (skipWebsiteId) {
+    // For payment endpoints - use direct backend URL without websiteId
+    return new ApiClient({
+      version: apiOptions.version || 'v1',
+      headers: apiOptions.headers,
+      skipWebsiteId: true, // Set flag to skip websiteId
+    });
   }
-  return apiClient;
+
+  return new ApiClient({
+    version: apiOptions.version || 'v1',
+    headers: apiOptions.headers
+  });
+};
+
+// Helper functions to create API clients with specific versions
+export const createApiClient = (version: 'v1' | 'v2' = 'v1', headers?: Record<string, string>) => {
+  return new ApiClient({ version, headers });
+};
+
+// Server-side helper that accepts websiteId
+export const createServerApiClient = (websiteId: string, version: 'v1' | 'v2' = 'v1', headers?: Record<string, string>) => {
+  return new ApiClient({ version, headers, websiteId });
+};
+
+// Server-side useApi helper
+export const useServerApi = (websiteId: string, options?: {
+  version?: 'v1' | 'v2';
+  headers?: Record<string, string>;
+}) => {
+  return new ApiClient({
+    version: options?.version || 'v1',
+    headers: options?.headers,
+    websiteId
+  });
 };
 
 // Export the class for direct usage in server components
