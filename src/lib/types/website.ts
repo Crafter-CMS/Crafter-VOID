@@ -1,4 +1,3 @@
-
 // --- Subschema Types ---
 
 export interface GoogleAnalytics {
@@ -109,7 +108,7 @@ export interface Category {
 
 export interface PaymentProviderConfig {
   id: string;
-  provider: 'PayTR' | 'Shopier' | 'Papara' | 'İyzico';
+  provider: "PayTR" | "Shopier" | "Papara" | "İyzico";
   name: string;
   isActive: boolean;
   config: Record<string, any>;
@@ -129,7 +128,7 @@ export interface Payment {
   merchant_oid: string;
   amount: number;
   currency: string;
-  status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELED' | 'REFUNDED';
+  status: "PENDING" | "COMPLETED" | "FAILED" | "CANCELED" | "REFUNDED";
   basket: {
     name: string;
     price: string;
@@ -151,13 +150,12 @@ export interface Payment {
 }
 
 export enum ReportType {
-  SPAM = 'spam',
-  HARASSMENT = 'harassment',
-  INAPPROPRIATE_CONTENT = 'inappropriate_content',
-  FRAUD = 'fraud',
-  OTHER = 'other',
+  SPAM = "spam",
+  HARASSMENT = "harassment",
+  INAPPROPRIATE_CONTENT = "inappropriate_content",
+  FRAUD = "fraud",
+  OTHER = "other",
 }
-
 
 export interface Report {
   id: string;
@@ -187,7 +185,7 @@ export interface Logs {
   eventData: Record<string, any>;
   ipAddress?: string;
   userAgent?: string;
-  severity: 'info' | 'warning' | 'error' | 'success';
+  severity: "info" | "warning" | "error" | "success";
   message: string;
   description?: string;
   metadata?: Record<string, any>;
@@ -275,7 +273,7 @@ export interface Security {
 export interface Theme {
   header: {
     bannerImage: string;
-  },
+  };
   navbar: {
     label: string;
     url: string;
@@ -335,6 +333,11 @@ export interface Website {
   server_info: ServerInfo | null;
   theme: Theme;
   maintenance: boolean;
+  tawkto: {
+    isActive: boolean;
+    propertyId: string;
+    chatId: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
