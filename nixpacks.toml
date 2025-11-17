@@ -1,0 +1,17 @@
+[phases.setup]
+nixPkgs = ["nodejs_20", "vips"]
+
+[phases.install]
+cmds = [
+  "npm ci --include=optional",
+  "rm -rf node_modules/sharp node_modules/lightningcss node_modules/@tailwindcss",
+  "npm install --cpu=x64 --os=linux sharp lightningcss @tailwindcss/postcss"
+]
+
+[phases.build]
+cmds = [
+  "npm run build"
+]
+
+[start]
+cmd = "npm start"
