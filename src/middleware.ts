@@ -13,6 +13,8 @@ export function middleware(request: NextRequest) {
 
   if (websiteId) {
     headers.set("x-website-id", websiteId);
+  } else if (process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_WEBSITE_ID) {
+    headers.set("x-website-id", process.env.NEXT_PUBLIC_WEBSITE_ID);
   } else {
     return NextResponse.redirect("https://crafter.net.tr");
   }
