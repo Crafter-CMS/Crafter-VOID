@@ -1,11 +1,21 @@
 export type Category = {
-    slug: string;
+  slug: string;
+  id: string;
+  name: string;
+  image: string;
+  description: string;
+  server_id: string;
+  type: 'listed_products' | 'single_products';
+  addons?: {
     id: string;
-    name: string;
-    image: string;
-    description: string;
-    server_id: string;
-    createdAt: string;
-    updatedAt: string;
-  };
+    title: string;
+    features: {
+      id: string;
+      title: string;
+      info: string;
+    }[];
+  }[];
+  createdAt: string;
+  updatedAt: string;
+};
   

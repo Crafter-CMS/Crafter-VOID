@@ -1,4 +1,5 @@
 import ProductCard from "@/components/ui/store/product-card";
+import ProductComparisonTable from "@/components/ui/store/product-comparison-table";
 import { serverCategoriesService } from "@/lib/api/services/categoriesService";
 import { serverProductsService } from "@/lib/api/services/productsService";
 import { serverWebsiteService } from "@/lib/api/services/websiteService";
@@ -88,22 +89,41 @@ export default async function CategoryPage({
           title={category.name}
           description={`${category.name} isimli kategoriye ait ürünler!`}
         />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {products.length > 0 ? (
-            products.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                currency={website.currency}
-                bulkDiscount={marketplaceSettings.bulkDiscount}
-              />
-            ))
+        
+        {/* Kategori tipine göre görüntüleme */}
+        {category.type === "listed_products" ? (
+          // Tablo görünümü
+          products.length > 0 ? (
+            <ProductComparisonTable
+              category={category}
+              products={products}
+              currency={website.currency}
+              bulkDiscount={marketplaceSettings.bulkDiscount}
+            />
           ) : (
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-center p-8">
               Bu kategoriye ait ürün bulunamadı.
             </p>
-          )}
-        </div>
+          )
+        ) : (
+          // Grid görünümü (single_products veya diğer tipler)
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {products.length > 0 ? (
+              products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  currency={website.currency}
+                  bulkDiscount={marketplaceSettings.bulkDiscount}
+                />
+              ))
+            ) : (
+              <p className="text-muted-foreground">
+                Bu kategoriye ait ürün bulunamadı.
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
