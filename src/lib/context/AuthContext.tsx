@@ -1,12 +1,14 @@
 "use client";
 
 import { createContext, useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
   SignUpRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
   AuthService,
-  serverAuthService, authService,
+  serverAuthService,
+  authService,
 } from "@/lib/api/services/authService";
 import { User } from "@/lib/types/user";
 import Loading from "@/components/ui/loading";
@@ -53,29 +55,63 @@ export const AuthProvider = ({
   // Create a single AuthService instance that will be reused
   const authServiceInstance = authService();
 
-  const apiClient = useApi({ version: 'v2' });
+  const apiClient = useApi({ version: "v2" });
   // Create user service with the same API client instance
   const userService = new UserService();
-  
+
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // Email validation function with infinite loop prevention
+  const checkEmailUpdate = (email: string | null | undefined): boolean => {
+    // Prevent infinite redirect loop - skip if already on settings page
+    if (
+      typeof window !== "undefined" &&
+      window.location.pathname === "/profile/settings"
+    ) {
+      return false;
+    }
+
+    // Check for invalid email patterns
+    if (!email || email.trim() === "" || email.endsWith("@temp.com")) {
+      toast.warning("E-posta Güncelleme Gerekli", {
+        description:
+          "Devam etmek için lütfen e-posta adresinizi güncelleyiniz.",
+        duration: 5000,
+      });
+
+      if (typeof window !== "undefined") {
+        // Delay redirect to allow toast to be visible
+        setTimeout(() => {
+          window.location.href = "/profile/settings";
+        }, 1000);
+      }
+      return true;
+    }
+    return false;
+  };
+
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUser = async (skipEmailCheck: boolean = false) => {
       try {
         // Check if we have tokens in localStorage and sync with ApiClient
         const accessToken = localStorage.getItem("accessToken");
         const refreshToken = localStorage.getItem("refreshToken");
-        
+
         if (accessToken && refreshToken) {
           apiClient.setAccessToken(accessToken);
           apiClient.setRefreshToken(refreshToken);
-          
+
           try {
             const user = await userService.getMe();
             setUser(user);
             setIsAuthenticated(true);
+
+            // Check email validity unless explicitly skipped
+            if (!skipEmailCheck) {
+              checkEmailUpdate(user.email);
+            }
           } catch (error) {
             // If getMe fails, clear invalid tokens
             localStorage.removeItem("accessToken");
@@ -180,7 +216,7 @@ export const AuthProvider = ({
       localStorage.removeItem("refreshToken");
       sessionStorage.removeItem("accessToken");
       apiClient.removeTokens();
-      
+
       setUser(null);
       setIsAuthenticated(false);
     } catch (error) {
@@ -194,6 +230,7 @@ export const AuthProvider = ({
       const user = await userService.getMe();
       setUser(user);
       setIsAuthenticated(true);
+      // Skip email check on manual refresh to prevent loops
     } catch (error) {
       setIsAuthenticated(false);
     } finally {
