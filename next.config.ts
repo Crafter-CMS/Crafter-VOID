@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
         hostname: "api.crafter.net.tr",
       },
       {
+        protocol: "https",
+        hostname: "devapi.crafter.net.tr",
+      },
+      {
         protocol: "http",
         hostname: "localhost",
       },
