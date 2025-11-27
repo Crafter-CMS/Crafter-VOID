@@ -16,6 +16,7 @@ import {
   Store,
   HelpCircle,
   FileText,
+  Gift,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -268,25 +269,25 @@ const Navbar = forwardRef<
 
         {/* Mobile Menu Panel */}
         <div
-          className={`absolute right-0 top-0 h-full w-80 bg-background border-l border-border shadow-xl transform transition-transform duration-300 ease-in-out mobile-menu overflow-hidden ${
+          className={`absolute right-0 top-0 h-full w-[85vw] max-w-sm bg-background border-l border-border shadow-xl transform transition-transform duration-300 ease-in-out mobile-menu flex flex-col ${
             isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-border bg-background">
+          {/* Header - Fixed */}
+          <div className="flex items-center justify-between p-6 border-b border-border bg-background shrink-0">
             <h2 className="text-xl font-semibold">Menü</h2>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 shrink-0"
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
 
           {/* Scrollable Content */}
-          <div className="h-full overflow-y-auto pb-6">
+          <div className="flex-1 overflow-y-auto overscroll-contain pb-6">
             {/* Navigation Links */}
             <div className="p-4 border-b border-border">
               <h3 className="text-sm font-medium text-muted-foreground mb-3">
@@ -339,13 +340,13 @@ const Navbar = forwardRef<
                 <div className="w-full h-10 bg-muted animate-pulse rounded"></div>
               ) : !isAuthenticated ? (
                 <div className="space-y-3">
-                  <Link href="/auth/sign-in" className="w-full">
+                  <Link href="/auth/sign-in" className="block w-full">
                     <Button variant="outline" className="w-full">
                       <LogIn className="w-4 h-4 mr-2" />
                       Giriş Yap
                     </Button>
                   </Link>
-                  <Link href="/auth/sign-up" className="w-full">
+                  <Link href="/auth/sign-up" className="block w-full">
                     <Button className="w-full">
                       <User className="w-4 h-4 mr-2" />
                       Kayıt Ol
@@ -356,13 +357,13 @@ const Navbar = forwardRef<
                 <div className="space-y-3">
                   {/* User Info */}
                   <div className="flex items-center space-x-3 p-3 bg-muted rounded-lg">
-                    <Avatar className="w-10 h-10">
+                    <Avatar className="w-10 h-10 shrink-0">
                       <AvatarImage
                         src={`https://mc-heads.net/avatar/${user?.username}/256`}
                       />
                     </Avatar>
-                    <div>
-                      <p className="font-medium">{user?.username}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate">{user?.username}</p>
                       <p className="text-sm text-muted-foreground">Oyuncu</p>
                     </div>
                   </div>
@@ -408,6 +409,18 @@ const Navbar = forwardRef<
                     <Button
                       variant="outline"
                       className="h-20 flex flex-col items-center justify-center space-y-1 p-2"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        router.push("/gifts");
+                      }}
+                    >
+                      <Gift className="h-5 w-5" />
+                      <span className="text-xs font-medium">Hediyeler</span>
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      className="h-20 flex flex-col items-center justify-center space-y-1 p-2 col-span-2"
                       onClick={() => {
                         setIsMobileMenuOpen(false);
                         router.push("/profile/settings");
@@ -529,6 +542,20 @@ const Navbar = forwardRef<
                 >
                   <Package className="h-6 w-6" />
                   <span className="text-sm font-medium">Sandığım</span>
+                </Button>
+
+                {/* Hediyeler */}
+                <Button
+                  variant="outline"
+                  className="h-24 flex flex-col items-center justify-center space-y-2 p-4"
+                  onClick={() => {
+                    // Navigate to gifts
+                    setIsUserMenuOpen(false);
+                    router.push("/gifts");
+                  }}
+                >
+                  <Gift className="h-6 w-6" />
+                  <span className="text-sm font-medium">Hediye Gönder</span>
                 </Button>
 
                 {/* Ayarlar */}
