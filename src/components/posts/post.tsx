@@ -235,7 +235,7 @@ export default function Post() {
                 <div className="flex items-center gap-6 mt-4 text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4" />
-                    <span>{post.author?.username || "Yazar Yok"}</span>
+                    <span>{post.author?.username || post.authorName || "Yazar Yok"}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4" />

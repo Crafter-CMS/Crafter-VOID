@@ -80,16 +80,18 @@ export default function PostCard({ post, className }: PostCardProps) {
               <Avatar className="h-8 w-8">
                 <AvatarImage
                   src={`https://mc-heads.net/avatar/${
-                    post.author?.username || "Unknown"
+                    post.author?.username || post.authorName || "Unknown"
                   }/256`}
-                  alt={post.author?.username || "Unknown"}
+                  alt={post.author?.username || post.authorName || "Unknown"}
                 />
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
-                  {post.author?.username?.charAt(0) || "?"}
+                  {post.author?.username?.charAt(0) ||
+                    post.authorName?.charAt(0) ||
+                    "?"}
                 </AvatarFallback>
               </Avatar>
               <span className="text-sm font-medium text-foreground">
-                {post.author?.username || "Unknown"}
+                {post.author?.username || post.authorName || "Unknown"}
               </span>
             </div>
 
