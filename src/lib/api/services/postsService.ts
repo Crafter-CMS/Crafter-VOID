@@ -1,5 +1,10 @@
 import { useApi, useServerApi } from "../useApi";
-import { GetPostsParams, PostLikeResponse, PostsResponse, WebsitePost } from "../../types/posts";
+import {
+  GetPostsParams,
+  PostLikeResponse,
+  PostsResponse,
+  WebsitePost,
+} from "../../types/posts";
 
 // Server-side website service using ApiClient
 export class PostsService {
@@ -8,19 +13,16 @@ export class PostsService {
   constructor(websiteId?: string) {
     if (websiteId) {
       // Server-side usage with websiteId
-      this.api = useServerApi(websiteId); // v1 default
+      this.api = useServerApi(websiteId, { version: "v2" });
     } else {
       // Client-side usage
-      this.api = useApi(); // v1 default
+      this.api = useApi({ version: "v2" });
     }
   }
 
   async getPosts(params?: GetPostsParams): Promise<PostsResponse> {
     try {
-      const response = await this.api.get<PostsResponse>(
-        `/posts`,
-        { params }
-      );
+      const response = await this.api.get<PostsResponse>(`/posts`, { params });
 
       return response.data;
     } catch (error) {
@@ -32,7 +34,7 @@ export class PostsService {
   async getPostBySlug(slug: string): Promise<WebsitePost | null> {
     try {
       const response = await this.api.get<{ data: WebsitePost }>(
-        `/posts/${slug}`,
+        `/posts/${slug}`
       );
 
       return response.data.data;
@@ -71,4 +73,5 @@ export class PostsService {
 export const postsService = () => new PostsService();
 
 // For server-side usage - now accepts websiteId
-export const serverPostsService = (websiteId: string) => new PostsService(websiteId);
+export const serverPostsService = (websiteId: string) =>
+  new PostsService(websiteId);
